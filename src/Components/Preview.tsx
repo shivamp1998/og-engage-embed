@@ -13,6 +13,7 @@ const Preview = () => {
   const [message, setMessage] = useState<any>();
   const [allCustomVariables, setAllCustomVariables] = useState<any>();
   const userCredential = Math.floor(100000 + Math.random() * 900000);
+  const [buttonVariables,setButtonVariables] = useState<any>();
 
   useEffect(() => {
     if (previewId) {
@@ -77,9 +78,86 @@ const Preview = () => {
     })
   }
 
+  const handleSendEmailNode = (sendTo: string,sendEmailDetails: any) => {
+    axiosPost(`/liveBot/sendEmail`, {
+        emailConfigId: sendEmailDetails.emailConfig,
+        from : sendEmailDetails.from,
+        sendTo: sendTo,
+        subject: sendEmailDetails.content.subject,
+        html: sendEmailDetails.content.body,
+        botId: botId,
+        botCustomId: botCustomId
+    }).then((repsonse) => {})
+    .catch((error) => {console.log(error)})
+    .finally(() => {
+        if(questions[currentQuestionIndex].outputs[0].connections != undefined) {
+            let currentIndex = questions.findIndex((x:any) => questions[currentQuestionIndex].outputs[0].connections != undefined);
+            setCurrentQuestionIndex(currentIndex); 
+        }
+    })
+  }
+
+  const handleSendMessageNode = (sendTo:string, sendSMSDetails:any) => {
+    axiosPost(`/liveBot/sendSms`, {
+        smsConfigId: sendSMSDetails.smsConfig,
+        smsBody: sendSMSDetails.smsBody,
+        botId: botId,
+        botCustomId: botCustomId,
+        userNumber: sendTo
+    })
+    .then((response) => {})
+    .catch((err) => {console.log(err)})
+    .finally(() => {
+        if(questions[currentQuestionIndex].outputs[0].connecctions !== undefined) {
+            let currentIndex = questions.findIndex((x:any) => x.drawflowId === questions[currentQuestionIndex].outputs[0].connections.node);
+            setCurrentQuestionIndex(currentIndex);
+        }
+    })
+  }
+  const operators: string[] = ["+", "-", "*", "/", "^"];
+  const isOperator = (data:any ) => {
+        if(operators.includes(data)) {
+            return true;
+        }
+        return false;
+  }
+
+  const findVariableData = (variable: string) => {
+    let dataFound = buttonVariables.find((v:any) => v.name === variable);
+    if(dataFound) {
+        return dataFound.value;
+    }else{
+        return 0;
+    }
+  }
+
+  const convertIntoPostFix = (formula: string[])=> {
+    for( let i = 0 ; i< formula.length ; i++) {
+        const activeElem = formula[i];
+        if (isOperator(activeElem)) {
+
+        }
+    }
+  }
+
+
+  const handleCalculateResult = async (nodeData:any) => {
+    let convertedFormula: any = [];
+    nodeData?.resultNodeDetails.formula.map((item:any) => {
+        if(isOperator(item)) {
+            convertedFormula.push(item);
+        }else {
+            convertedFormula.push(findVariableData(item));
+        }
+    });
+    
+  }
+
+  
+
   useEffect(() => {
-    if (currentQuestionIndex != null) {
-        if(questions[currentQuestionIndex].name === 'button') {
+    if (currentQuestionIndex !== null && currentQuestionIndex !== undefined) {
+        if(questions[currentQuestionIndex]?.name === 'button') {
             let optionsKeys = Object.keys(questions[currentQuestionIndex].data);
             let IndexOfTitle = optionsKeys.findIndex((key) => key === 'title');
             let optionValues = Object.values(questions[currentQuestionIndex].data);
@@ -107,6 +185,62 @@ const Preview = () => {
                 }
             ]);
         }
+    } else if (questions[currentQuestionIndex]?.name === 'sendMessage') {
+        let titleData = handleTitleVariable(questions[currentQuestionIndex]?.data?.title);
+        setMessage( (prevData:any) => [
+            ...prevData,
+            {
+                author: 0,
+                timestamp: new Date(),
+                text: titleData,
+                name: questions[currentQuestionIndex].name,
+                hasAnswered: true,
+                completeData: questions[currentQuestionIndex]
+            }
+        ])
+        handleSendNoReplyMessage(titleData);
+        if(questions[currentQuestionIndex].outputs[0].connections !== undefined) {
+            let currentIndex = questions.findIndex((x:any) => x.drawflowId === questions[currentQuestionIndex].outputs[0].connection.node);
+            setCurrentQuestionIndex(currentIndex);
+        }
+    } else if ( questions[currentQuestionIndex].name === 'email' ||
+                questions[currentQuestionIndex].name === 'phone' ||
+                questions[currentQuestionIndex].name === 'username' ||
+                questions[currentQuestionIndex].name === 'address' || 
+                questions[currentQuestionIndex].name === 'ask_question'
+            ) {
+        if(questions[currentQuestionIndex] !== undefined) {
+            let titleData = handleTitleVariable(questions[currentQuestionIndex]?.data?.title);
+            setMessage((prevItems:any) => [
+                ...prevItems,
+                {
+                    author: 0,
+                    timestamp: new Date(),
+                    title: titleData,
+                    name: questions[currentQuestionIndex].name,
+                    hasAnswered : false,
+                    completeData: questions[currentQuestionIndex]
+                }
+            ]); 
+        } 
+    } else if (questions[currentQuestionIndex].name === 'sendEmail') {
+        let index = message.findIndex((x:any) =>  x.name === 'email' );
+        let sendTo = "";
+        let sendEmailDetails = questions[currentQuestionIndex].sendEmailDetails;
+        if (message[index + 1] !== undefined) {
+            sendTo = message[index + 1].text; 
+        }
+        handleSendEmailNode(sendTo,sendEmailDetails);
+    } else if (questions[currentQuestionIndex].name === 'sendSMS') {
+        let index = message.findIndex((x:any) => x.name === 'phone');
+        let sendTo = '';
+        let sendSmsDetails = questions[currentQuestionIndex].sendSmsDetails;
+        if(message[index + 1] !== undefined) {
+            sendTo = message[index + 1].text;
+        }
+        handleSendMessageNode(sendTo,sendSmsDetails);
+    } else if (questions[currentQuestionIndex].name === 'result') {
+        
     }
   }, [currentQuestionIndex]);
 
