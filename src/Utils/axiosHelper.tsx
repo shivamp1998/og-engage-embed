@@ -10,3 +10,11 @@ export const axiosGet = (url: string) => {
 }
 
 
+export const axiosPost = (url: string,data:any) => {
+    return axios.post(`${baseURL}${url}`,data, {
+        headers: {
+            'Content-Type' : 'application/json'
+        }
+    })
+}
+
