@@ -15,6 +15,9 @@ const Preview = () => {
   const [allCustomVariables, setAllCustomVariables] = useState<any>();
   const userCredential = Math.floor(100000 + Math.random() * 900000);
   const [buttonVariables,setButtonVariables] = useState<any>();
+  const [userReply, setUserReply] = useState<any>('');
+  const [isReplyValid, setIsReplyValid] = useState(true);
+  const [error,setError] = useState<any>('');
 
   
 
@@ -175,7 +178,7 @@ const Preview = () => {
                 }
 
                 pop();
-            } else if (activeElem == "(") {
+            } else if (activeElem === "(") {
                 push(activeElem);
             } else if (getPrecedence(activeElem) > getPrecedence(stackArr[stackTop])) {
                 push(activeElem);
@@ -483,6 +486,105 @@ const Preview = () => {
         }
     } 
   }, [currentQuestionIndex]);
+
+  const handleUserReply = (currentIndex: number) => {
+    let oldMessages = [...message];
+    let indexToUpdate = message.length - 1;
+    oldMessages[indexToUpdate].hasAnswered = true;
+    setMessage(oldMessages);
+    setMessage((prevItems:any) => [
+        ...prevItems,
+        {
+            author: 1,
+            timestamp: new Date(),
+            text: userReply
+        }
+    ]);
+    let varName = message[currentIndex].completeData.variableName !== undefined ? message[currentIndex].completeData.variableName : null;
+    let variableDataToSend:any = {};
+    
+    if(varName !== null) {
+        variableDataToSend = {
+            [varName] : userReply
+        }
+    }
+
+    axiosPost(`/liveBot/saveAnswers?botId=${botId}&roomId=${roomId}`, {
+        botCustomId: botCustomId,
+        nodeTitle: message[currentIndex].completeData.data.title,
+        drawFlowId: message[currentIndex].completeData.drawFlowId,
+        userAnswer: userReply,
+        variableData: variableDataToSend,
+        userCredential: { id: userCredential.toString()}
+    })
+    .then((response) => {
+        if(roomId === null) {
+            setRoomId(response.data.roomId);
+        }
+        if(questions[currentQuestionIndex].outputs[0].connections !== undefined) {
+            let currentIndex = questions.findIndex((x:any) => x.drawFlowId === questions[currentQuestionIndex].outputs[0].connections.node);
+            setCurrentQuestionIndex(currentIndex);
+        }
+    })
+    setUserReply("");
+  }
+
+  const validateInputData = (inputData: any, validationType: any) => {
+    if (validationType === "email") {
+        setIsReplyValid(false);
+        setError("Invalid Email");
+        let regEmail =
+          /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+        if (regEmail.test(inputData)) {
+          setIsReplyValid(true);
+        }
+      } else if (validationType === "phone") {
+        setIsReplyValid(false);
+        setError("Invalid Phone Number");
+        let regPhone =
+          /(\+\d{1,3}\s?)?((\(\d{3}\)\s?)|(\d{3})(\s|-?))(\d{3}(\s|-?))(\d{4})(\s?(([E|e]xt[:|.|]?)|x|X)(\s?\d+))?/g;
+        if (regPhone.test(inputData)) {
+          setIsReplyValid(true);
+        }
+      } else if (validationType === "username") {
+        setIsReplyValid(false);
+        setError("Invalid UserName");
+        let regUsername = /^[A-Za-z_][A-Za-z\d_]*$/;
+        if (regUsername.test(inputData)) {
+          setIsReplyValid(true);
+        }
+      } else if (validationType === "address") {
+        setIsReplyValid(false);
+        setError("Address can not be empty");
+        if (inputData !== "") {
+          setIsReplyValid(true);
+        }
+      }
+  }
+
+  const handleButtonReply = (currentIndex:number, buttonSelected: any, buttonSelectedIndex: any) => {
+    let oldMessages = [...message];
+    let indexToUpdate = message.length - 1;
+    oldMessages[indexToUpdate].hasAnswered = true;
+    setMessage(oldMessages);
+
+    setMessage((prevItems:any) => [
+        ...prevItems,
+        {
+            author: 1,
+            timestamp: new Date(),
+            text: buttonSelected
+        }
+    ])
+
+    let varName = message[currentIndex].completeData.variableName !== undefined ? message[currentIndex].completeData.variableName : null;
+    let insideVarName = message[currentIndex].completeData.buttonDetails.variableName;
+    const valueOfButton = message[currentIndex].completeData.buttonDetails.buttons[buttonSelectedIndex].value;
+    let oldbuttonVarialbles = {...buttonVariables};
+    let newObj = {
+        
+    }
+  }
 
   return (
     <Fragment>
