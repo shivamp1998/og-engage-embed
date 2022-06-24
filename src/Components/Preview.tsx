@@ -1,3 +1,4 @@
+import axios from "axios";
 import { useEffect, Fragment, useState } from "react";
 import { useLocation } from "react-router-dom";
 import { axiosGet, axiosPost } from "../Utils/axiosHelper";
@@ -153,6 +154,125 @@ const Preview = () => {
     });
   }
 
+  const getSimpleObject = (data:any,mainKey = "") => {
+    let obj = {};
+    const objKeys = Object.keys(data);
+    objKeys.forEach((key) => {
+        if(typeof data[key] !== 'object') {
+            if(mainKey.length > 0) {
+                obj = {...obj, [`${mainKey}.${key}`] : data[key]}
+            }
+            else {
+                obj = {...obj, [`${key}`] : data[key]}
+            }
+        } else if(Array.isArray(data[key])) {
+            const arr = data[key];
+            const arrLen = data[key].length;
+
+            let tempObj = convertArrayToObject(arr,key);
+            
+            if(mainKey.length > 0) {
+                tempObj = getSimpleObject(data[key], `${mainKey}.${key}`);
+            }else{
+                tempObj = getSimpleObject(data[key], `${key}`);
+                obj = {...obj,...tempObj};
+            }
+        }
+    });
+    return obj;
+  }
+
+  const convertArrayToObject = (arr: any,key: any) => {
+    let obj:any = {};
+    arr.forEach((a:any,index:number) => {
+        obj[`${key}.${index}`] = a;
+    })
+    return obj;
+  }
+
+  const handlehitApi = async (apiNodeData: any) => {
+        if(apiNodeData?.hitApiDetails !== undefined) {
+            let requestType = apiNodeData?.hitApiDetails.requestType;
+            let requestUrl = apiNodeData?.hitApiDetails.url;
+            let data = apiNodeData?.hitApiDetails.body;
+            let headers = apiNodeData?.hitApiDetails.headers;
+            let queryParameters = apiNodeData?.hitApiDetails.queryParameters;
+            let response:any;
+            try {
+                switch(requestType) {
+                    case 'get' : 
+                        response = await axios.get(requestUrl, {
+                            headers, params: queryParameters
+                        });
+                     break;
+                    case  'post' :
+                        response = await axios.post(requestUrl,data,{
+                            headers,
+                            params: queryParameters
+                        })
+                        break;
+                    case  'put' : 
+                        response = await axios.put(requestUrl,data, {
+                            headers,
+                            params: queryParameters
+                        })
+                        break;
+                    case 'patch' :
+                        response = await axios.patch(requestUrl,data,{
+                            headers,
+                            params: queryParameters
+                        })
+                        break;
+                    case 'delete' :
+                        response = await axios.delete(requestUrl,{
+                            headers,
+                            params: queryParameters
+                        })
+                        break;
+                    default : 
+                        if(questions[currentQuestionIndex].outputs[1].connections !== undefined) {
+                            let currentIndex = questions.findIndex((x:any) => x.drawflowId === questions[currentQuestionIndex].outputs[1].connections.node);
+                            setCurrentQuestionIndex(currentIndex);
+                        }   
+                }
+                let allData = getSimpleObject(response.data);
+                let oldApiVariables = [...allCustomVariables];
+
+                apiNodeData?.hitApiDetails.variables.map((item:any) => {
+                    let variableName = item.name.split('.');
+                    let firstItem = variableName[0].split("_").splice(-1,1).join("");
+                    variableName[0] = firstItem;
+                    let ItemtoSearch = variableName.join(".");
+                    if(allData.hasOwnProperty(ItemtoSearch)) {
+                        let allKeys = Object.keys(allData);
+                        let allValues = Object.values(allData);
+                        let indexOfitem = allKeys.indexOf(ItemtoSearch);
+                        let obj = {
+                            name: item.customName,
+                            value: allValues[indexOfitem]
+                        }
+                        oldApiVariables.push(obj);
+                    }
+                });
+                setAllCustomVariables(oldApiVariables);
+
+
+                if(questions[currentQuestionIndex].outputs[0].connections !== undefined) {
+                    let currentIndex = questions.findIndex((x:any) => x.drawFlowId === questions[currentQuestionIndex].connections.node);
+                    setCurrentQuestionIndex(currentIndex);
+                }
+
+            }
+            catch(err) {
+                if(questions[currentQuestionIndex].outputs[1].connections !== undefined) {
+                    let currentIndex = questions.findIndex((x:any) => x.drawFlowId === questions[currentQuestionIndex].outputs[1].connections.node);
+                    setCurrentQuestionIndex(currentIndex);
+                }
+                console.log(err);
+            }
+        }
+  }
+
   
 
   useEffect(() => {
@@ -239,7 +359,9 @@ const Preview = () => {
             }
             handleSendMessageNode(sendTo,sendSmsDetails);
         } else if (questions[currentQuestionIndex]?.name === 'result') {
-            
+            handleCalculateResult(questions[currentQuestionIndex]);
+        }else if (questions[currentQuestionIndex]?.name === 'hitApi') {
+            handlehitApi(questions[currentQuestionIndex]);
         }
     } 
   }, [currentQuestionIndex]);
