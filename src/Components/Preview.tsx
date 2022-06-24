@@ -16,6 +16,8 @@ const Preview = () => {
   const userCredential = Math.floor(100000 + Math.random() * 900000);
   const [buttonVariables,setButtonVariables] = useState<any>();
 
+  
+
   useEffect(() => {
     if (previewId) {
       axiosGet(`/users/questions?url=${previewId}&status=${"live"}`)
@@ -133,15 +135,110 @@ const Preview = () => {
     }
   }
 
+  let postfix: string[] = [];
+  let stackArr: string[] = ['@'];
+  let stackTop = 0;
+  let stack: number[] = [];
+  let resultStackTop: number = -1;
+
+  const pop = () : string => {
+    const popped_ele = stackArr[stackTop];
+    stackTop--;
+    return popped_ele;
+  }
+
+  const push = (e:string) => {
+    stackTop ++;
+    stackArr[stackTop] = e;
+  }
+
+  const getPrecedence = (operator: string) : number => {
+    switch (operator) {
+        case '+' : 
+        case "-" :
+            return 1;
+        case "*" :
+        case "/" :
+            return 2;
+        case "^" :
+            return 3;
+    }
+    return -1;
+  }
   const convertIntoPostFix = (formula: string[])=> {
     for( let i = 0 ; i< formula.length ; i++) {
         const activeElem = formula[i];
         if (isOperator(activeElem)) {
+            if(activeElem === ")") {
+                while(stackTop !== -1 && stackArr[stackTop] !== "(") {
+                    postfix.push(pop());
+                }
 
+                pop();
+            } else if (activeElem == "(") {
+                push(activeElem);
+            } else if (getPrecedence(activeElem) > getPrecedence(stackArr[stackTop])) {
+                push(activeElem);
+            } else {
+                while( getPrecedence(activeElem)  <= getPrecedence(stackArr[stackTop]) && stackTop > -1) {
+                    postfix.push(pop());
+                }
+            }
+            push(activeElem);
+        } else {
+            postfix.push(activeElem);
         }
+    }
+
+    while(stackArr[stackTop] !== '@') {
+        postfix.push(pop());
+    }
+    return postfix;
+  }
+
+  const popFromStack = () : number => {
+    const popped_ele = stack[resultStackTop];
+    resultStackTop--;
+    return popped_ele;
+  }
+
+  const pushToStack = (e:number) => {
+    resultStackTop++;
+    stack[resultStackTop] = e;
+  } 
+
+  const calculate = (operand1: number, operand2: number, operator: string) => {
+    switch(operator) {
+        case '+' : 
+            return operand1 + operand2;
+        case '-' :
+            return operand1 - operand2;
+        case '*' :
+            return operand1 * operand2;
+        case '/' :
+            return operand1 / operand2;
+        case '^' :
+            return operand1 ** operand2;
+        default: 
+            return 0;
     }
   }
 
+  
+  const evaluatePostFix = (formula: (string | number)[]) : number => {
+    let result: number = 0;
+    formula.forEach((element: string | number) => {
+        if(typeof element === 'string' && isOperator(element)) {
+            const operand1 = popFromStack();
+            const operand2 = popFromStack();
+            result = calculate(operand1,operand2,element); 
+            pushToStack(result);
+        }else if( typeof element === "number") {
+            pushToStack(element);
+        }
+    });
+    return result;
+  }
 
   const handleCalculateResult = async (nodeData:any) => {
     let convertedFormula: any = [];
@@ -152,6 +249,17 @@ const Preview = () => {
             convertedFormula.push(findVariableData(item));
         }
     });
+    let postFixFormula = convertIntoPostFix(convertedFormula);
+    let finalResult = evaluatePostFix(postFixFormula);
+    let oldVariableData = [...allCustomVariables];
+    let newObj = { name: nodeData?.variableName, value: finalResult};
+    oldVariableData.push(newObj);
+    setAllCustomVariables(oldVariableData);
+
+    if(questions[currentQuestionIndex].outputs[0].connections != undefined) {
+        let currentIndex = questions.findIndex((x:any) => x.drawFlowId === questions[currentQuestionIndex].outputs[0].connections.node);
+        setCurrentQuestionIndex(currentIndex);
+    }
   }
 
   const getSimpleObject = (data:any,mainKey = "") => {
@@ -273,6 +381,10 @@ const Preview = () => {
         }
   }
 
+  const handlePushNotifications = (pushNotification:any) => {
+
+  }
+
   
 
   useEffect(() => {
@@ -360,8 +472,14 @@ const Preview = () => {
             handleSendMessageNode(sendTo,sendSmsDetails);
         } else if (questions[currentQuestionIndex]?.name === 'result') {
             handleCalculateResult(questions[currentQuestionIndex]);
-        }else if (questions[currentQuestionIndex]?.name === 'hitApi') {
+        } else if (questions[currentQuestionIndex]?.name === 'hitApi') {
             handlehitApi(questions[currentQuestionIndex]);
+        } else if (questions[currentQuestionIndex]?.name === 'pushNotifications') {
+            handlePushNotifications(questions[currentQuestionIndex].pushNotification);
+            if(questions[currentQuestionIndex]?.outputs[0].connections !== undefined) {
+                let currentIndex = questions.findIndex((x:any) => x.drawFlowId === questions[currentQuestionIndex].outputs[0].connections.node);
+                setCurrentQuestionIndex(currentIndex);
+            }
         }
     } 
   }, [currentQuestionIndex]);
