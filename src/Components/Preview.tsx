@@ -19,6 +19,7 @@ const Preview = () => {
     if (previewId) {
       axiosGet(`/users/questions?url=${previewId}&status=${"live"}`)
         .then((response) => {
+          console.log(response.data.botData.questions)  
           setQuestions(response.data.botData.questions);
           setBotCustomId(response.data.botData.botCustomId);
           setBotId(response.data.data._id);
@@ -150,13 +151,12 @@ const Preview = () => {
             convertedFormula.push(findVariableData(item));
         }
     });
-    
   }
 
   
 
   useEffect(() => {
-    if (currentQuestionIndex !== null && currentQuestionIndex !== undefined) {
+    if (currentQuestionIndex !== undefined) {
         if(questions[currentQuestionIndex]?.name === 'button') {
             let optionsKeys = Object.keys(questions[currentQuestionIndex].data);
             let IndexOfTitle = optionsKeys.findIndex((key) => key === 'title');
@@ -184,64 +184,64 @@ const Preview = () => {
                     completeData: questions[currentQuestionIndex]
                 }
             ]);
-        }
-    } else if (questions[currentQuestionIndex]?.name === 'sendMessage') {
-        let titleData = handleTitleVariable(questions[currentQuestionIndex]?.data?.title);
-        setMessage( (prevData:any) => [
-            ...prevData,
-            {
-                author: 0,
-                timestamp: new Date(),
-                text: titleData,
-                name: questions[currentQuestionIndex].name,
-                hasAnswered: true,
-                completeData: questions[currentQuestionIndex]
-            }
-        ])
-        handleSendNoReplyMessage(titleData);
-        if(questions[currentQuestionIndex].outputs[0].connections !== undefined) {
-            let currentIndex = questions.findIndex((x:any) => x.drawflowId === questions[currentQuestionIndex].outputs[0].connection.node);
-            setCurrentQuestionIndex(currentIndex);
-        }
-    } else if ( questions[currentQuestionIndex].name === 'email' ||
-                questions[currentQuestionIndex].name === 'phone' ||
-                questions[currentQuestionIndex].name === 'username' ||
-                questions[currentQuestionIndex].name === 'address' || 
-                questions[currentQuestionIndex].name === 'ask_question'
-            ) {
-        if(questions[currentQuestionIndex] !== undefined) {
+        }else if (questions[currentQuestionIndex]?.name === 'sendMessage') {
             let titleData = handleTitleVariable(questions[currentQuestionIndex]?.data?.title);
-            setMessage((prevItems:any) => [
-                ...prevItems,
+            setMessage( (prevData:any) => [
+                ...prevData,
                 {
                     author: 0,
                     timestamp: new Date(),
-                    title: titleData,
+                    text: titleData,
                     name: questions[currentQuestionIndex].name,
-                    hasAnswered : false,
+                    hasAnswered: true,
                     completeData: questions[currentQuestionIndex]
                 }
-            ]); 
-        } 
-    } else if (questions[currentQuestionIndex].name === 'sendEmail') {
-        let index = message.findIndex((x:any) =>  x.name === 'email' );
-        let sendTo = "";
-        let sendEmailDetails = questions[currentQuestionIndex].sendEmailDetails;
-        if (message[index + 1] !== undefined) {
-            sendTo = message[index + 1].text; 
+            ])
+            handleSendNoReplyMessage(titleData);
+            if(questions[currentQuestionIndex].outputs[0].connections !== undefined) {
+                let currentIndex = questions.findIndex((x:any) => x.drawflowId === questions[currentQuestionIndex].outputs[0].connection.node);
+                setCurrentQuestionIndex(currentIndex);
+            }
+        } else if ( questions[currentQuestionIndex]?.name === 'email' ||
+                    questions[currentQuestionIndex]?.name === 'phone' ||
+                    questions[currentQuestionIndex]?.name === 'username' ||
+                    questions[currentQuestionIndex]?.name === 'address' || 
+                    questions[currentQuestionIndex]?.name === 'ask_question'
+                ) {
+            if(questions[currentQuestionIndex] !== undefined) {
+                let titleData = handleTitleVariable(questions[currentQuestionIndex]?.data?.title);
+                setMessage((prevItems:any) => [
+                    ...prevItems,
+                    {
+                        author: 0,
+                        timestamp: new Date(),
+                        title: titleData,
+                        name: questions[currentQuestionIndex].name,
+                        hasAnswered : false,
+                        completeData: questions[currentQuestionIndex]
+                    }
+                ]); 
+            } 
+        } else if (questions[currentQuestionIndex]?.name === 'sendEmail') {
+            let index = message.findIndex((x:any) =>  x.name === 'email' );
+            let sendTo = "";
+            let sendEmailDetails = questions[currentQuestionIndex].sendEmailDetails;
+            if (message[index + 1] !== undefined) {
+                sendTo = message[index + 1].text; 
+            }
+            handleSendEmailNode(sendTo,sendEmailDetails);
+        } else if (questions[currentQuestionIndex]?.name === 'sendSMS') {
+            let index = message.findIndex((x:any) => x.name === 'phone');
+            let sendTo = '';
+            let sendSmsDetails = questions[currentQuestionIndex].sendSmsDetails;
+            if(message[index + 1] !== undefined) {
+                sendTo = message[index + 1].text;
+            }
+            handleSendMessageNode(sendTo,sendSmsDetails);
+        } else if (questions[currentQuestionIndex]?.name === 'result') {
+            
         }
-        handleSendEmailNode(sendTo,sendEmailDetails);
-    } else if (questions[currentQuestionIndex].name === 'sendSMS') {
-        let index = message.findIndex((x:any) => x.name === 'phone');
-        let sendTo = '';
-        let sendSmsDetails = questions[currentQuestionIndex].sendSmsDetails;
-        if(message[index + 1] !== undefined) {
-            sendTo = message[index + 1].text;
-        }
-        handleSendMessageNode(sendTo,sendSmsDetails);
-    } else if (questions[currentQuestionIndex].name === 'result') {
-        
-    }
+    } 
   }, [currentQuestionIndex]);
 
   return (
