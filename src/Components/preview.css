@@ -1,0 +1,288 @@
+.previewContainer {
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    background-position-y: -62px;
+    background-image: url("https://res.cloudinary.com/dnag1wvx8/image/upload/v1655874116/Group_1227_1_jrqeed.svg");
+}
+
+i.bArrow-icon {
+    font-size: 32px !important;
+    margin-left: 50px;
+    margin-top: 10px !important;
+    cursor: pointer;
+}
+
+.centered-div {
+    width: 50%;
+    min-height: 100vh;
+    padding: 40px 15px 20px 15px;
+    color: #222222;
+    border-radius: 5px;
+}
+
+.botChatBox {
+    max-width: 400px;
+    border-radius: 10px 10px 10px 0;
+    width: fit-content;
+    padding: 16px 20px;
+    cursor: default;
+    border: 1px solid #286B68;
+}
+
+.botChatBox p {
+    font-family: 'Rubik';
+    font-style: normal;
+    font-weight: 400;
+    font-size: 16px;
+    line-height: 19px;
+    /* identical to box height */
+    display: flex;
+    align-items: center;
+    color: #000000;
+}
+
+.userChatBox {
+    max-width: 400px;
+    display: flex;
+    justify-content: flex-end;
+    border-radius: 10px 10px 0px 10px;
+    background-color: white;
+    padding: 16px 20px;
+    cursor: default;
+    background-image: linear-gradient(45deg, #286B68, #286B68);
+    color: #fff;
+}
+
+.userChatBox p {
+    font-family: 'Ubuntu';
+    font-size: 18px;
+    font-weight: 400;
+    cursor: text;
+    line-height: 1.5;
+}
+
+.buttonContainer {
+    display: flex;
+    flex-direction: row;
+    margin-bottom: 10px;
+}
+
+.questionButton {
+    background: #286B68;
+    border-radius: 4px;
+    width: 130px;
+    height: 40px;
+    overflow: hidden;
+    cursor: pointer;
+    transition: .4s ease;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.questionButton:hover {
+    background: #286B68;
+    box-shadow: rgb(0 0 0 / 29%) 0px 6px 21px -11px, rgb(47 49 72 / 30%) 0px 13px 17px -16px;
+}
+
+.questionButton img {
+    transition: .4s ease;
+    width: 100%;
+    height: 65%;
+    object-fit: cover;
+}
+
+.questionButton:hover img {
+    transform: scale(1.1);
+}
+
+.questionButton p {
+    font-family: 'Rubik';
+    font-style: normal;
+    font-weight: 400;
+    font-size: 16px;
+    line-height: 19px;
+    /* identical to box height */
+    color: #FFFFFF;
+}
+
+.userReply {
+    border-radius: 5px;
+    background-color: #fff;
+    width: fit-content;
+    border-width: 1px;
+    border-color: var(--border-color);
+    padding: 8px 0;
+    margin-top: 10px;
+    font-size: 14px;
+    font-family: 'Ubuntu';
+    width: 100%;
+}
+
+.userReply input {
+    outline: none;
+}
+
+.small-txt {
+    font-family: 'Ubuntu';
+    color: #797979;
+    font-size: 12px;
+    text-transform: uppercase;
+    font-weight: 500;
+    cursor: text;
+}
+
+.small-txt.error {
+    color: #286B68;
+}
+
+.chatDataContainer {
+    display: flex;
+    flex-direction: column;
+    /* margin-left: 30px; */
+}
+
+.botleft {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+    position: relative;
+}
+
+.Previewthumbnail {
+    position: absolute;
+    bottom: -3px;
+    left: -35px;
+}
+
+.buttonleft {
+    display: flex;
+    flex-wrap: wrap;
+}
+
+.userright {
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: 10px;
+}
+
+.Previewthumbnail i {
+    font-size: 32px !important;
+    margin-right: 8px;
+    margin-top: 3px;
+}
+
+.coverImage {
+    object-fit: cover;
+}
+
+.preview-head {
+    background: #fff;
+    position: sticky;
+    z-index: 9;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+    display: flex;
+    justify-content: space-between;
+    padding: 10px 20px;
+}
+
+.preview-head h1 {
+    font-family: 'Rubik';
+    font-style: normal;
+    font-weight: 500;
+    font-size: 20px;
+    line-height: 24px;
+    /* identical to box height */
+    display: flex;
+    align-items: center;
+    color: #003049;
+}
+
+.preview-head .close-preview-button {
+    background: none;
+    border: 1px solid #286B68;
+    border-radius: 8px;
+    padding: 10px 19px;
+    font-family: 'Rubik';
+    font-style: normal;
+    font-weight: 400;
+    font-size: 14px;
+    line-height: 17px;
+    /* identical to box height */
+    display: flex;
+    align-items: center;
+    color: #286B68;
+    width: 151px;
+    height: 38px;
+    margin-right: 15px;
+}
+
+.preview-head .close-preview-button svg {
+    margin-right: 10px;
+}
+
+.preview-head .share-button {
+    padding: 10px 19px;
+    width: 100px;
+    height: 38px;
+    background: #286B68;
+    border-radius: 8px;
+    border: none;
+    font-family: 'Rubik';
+    font-style: normal;
+    font-weight: 400;
+    font-size: 14px;
+    line-height: 17px;
+    /* identical to box height */
+    display: flex;
+    align-items: center;
+    color: #FFFFFF;
+}
+
+.preview-head .share-button svg {
+    margin-right: 10px;
+}
+
+.middle-head-preview {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border: 1px solid rgba(0, 0, 0, 0.2);
+    padding: 5px;
+    width: 82px;
+    height: 42px;
+    border-radius: 4px;
+}
+
+.middle-head-preview button {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: none;
+    border: none;
+    width: 34px;
+    height: 34px;
+}
+
+.middle-head-preview button:hover {
+    border-radius: 4px;
+    background: #286B68;
+}
+
+.middle-head-preview button:hover svg path {
+    fill: #fff;
+}
+
+.middle-head-preview svg path {
+    fill: #666666;
+}
+
+.right-head-preview {
+    display: flex;
+}
+
+
+/* ::-webkit-scrollbar {
+    display:none;
+  } */

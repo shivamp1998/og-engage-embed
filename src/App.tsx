@@ -8,7 +8,7 @@ function App() {
     <Fragment>
       <Routes>
         <Route path={`/`} element={<Navigate to={`/preview`}/>}/>
-        <Route path={'/preview'} element={<Preview/>}/>
+        <Route path={'/preview/:previewId'} element={<Preview/>}/>
       </Routes>
     </Fragment>
   );
